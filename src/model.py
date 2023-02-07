@@ -1,10 +1,10 @@
 from typing import Optional, Union, List
 import torch
 import torch.nn as nn
-from segmentation_model_ptorch.base.modules import Activation
+from segmentation_models_pytorch.base.modules import Activation
 from . import initialization as init
-from segmentation_model_ptorch.encoders import get_encoder
-from segmentation_model_ptorch.decoder import UnetDecoder
+from segmentation_models_pytorch.encoders import get_encoder
+from segmentation_models_pytorch.decoder import UnetDecoder
 
 
 class SegmentationHead(nn.Sequential):
