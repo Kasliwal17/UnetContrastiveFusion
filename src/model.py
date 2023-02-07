@@ -3,7 +3,7 @@ import torch
 import torch.nn as nn
 from segmentation_models_pytorch.base.modules import Activation
 from segmentation_models_pytorch.encoders import get_encoder
-from segmentation_models_pytorch.decoder import UnetDecoder
+from segmentation_models_pytorch.decoders.unet.decoder import UnetDecoder
 
 def initialize_decoder(module):
     for m in module.modules():
