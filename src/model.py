@@ -2,11 +2,34 @@ from typing import Optional, Union, List
 import torch
 import torch.nn as nn
 from segmentation_models_pytorch.base.modules import Activation
-from . import initialization as init
 from segmentation_models_pytorch.encoders import get_encoder
 from segmentation_models_pytorch.decoder import UnetDecoder
 
+def initialize_decoder(module):
+    for m in module.modules():
 
+        if isinstance(m, nn.Conv2d):
+            nn.init.kaiming_uniform_(m.weight, mode="fan_in", nonlinearity="relu")
+            if m.bias is not None:
+                nn.init.constant_(m.bias, 0)
+
+        elif isinstance(m, nn.BatchNorm2d):
+            nn.init.constant_(m.weight, 1)
+            nn.init.constant_(m.bias, 0)
+
+        elif isinstance(m, nn.Linear):
+            nn.init.xavier_uniform_(m.weight)
+            if m.bias is not None:
+                nn.init.constant_(m.bias, 0)
+
+
+def initialize_head(module):
+    for m in module.modules():
+        if isinstance(m, (nn.Linear, nn.Conv2d)):
+            nn.init.xavier_uniform_(m.weight)
+            if m.bias is not None:
+                nn.init.constant_(m.bias, 0)
+                
 class SegmentationHead(nn.Sequential):
     def __init__(self, in_channels, out_channels, kernel_size=3, activation=None, upsampling=1):
         conv2d = nn.Conv2d(in_channels, out_channels, kernel_size=kernel_size, padding=kernel_size // 2)
@@ -28,10 +51,10 @@ class ClassificationHead(nn.Sequential):
                          
 class SegmentationModel(torch.nn.Module):
     def initialize(self):
-        init.initialize_decoder(self.decoder)
-        init.initialize_head(self.segmentation_head)
+        initialize_decoder(self.decoder)
+        initialize_head(self.segmentation_head)
         if self.classification_head is not None:
-            init.initialize_head(self.classification_head)
+            initialize_head(self.classification_head)
 
     def check_input_shape(self, x):
 
