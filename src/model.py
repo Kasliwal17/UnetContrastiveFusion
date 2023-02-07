@@ -1,7 +1,9 @@
+from typing import Optional, Union, List
 import torch
 from . import initialization as init
 from segmentation_model_ptorch.encoders import get_encoder
 from segmentation_model_ptorch.decoder import UnetDecoder
+
 
 class SegmentationHead(nn.Sequential):
     def __init__(self, in_channels, out_channels, kernel_size=3, activation=None, upsampling=1):
@@ -50,7 +52,8 @@ class SegmentationModel(torch.nn.Module):
         if self.fusion == True:
             features1 = self.encoder2(y)
             for ind in range(len(features)):
-                features[ind] = torch.max(features[ind],features1[ind])
+                # features[ind] = torch.max(features[ind],features1[ind])
+                features[ind] = torch.cat((features[ind],features1[ind]),1)
         decoder_output = self.decoder(*features)
 
         masks = self.segmentation_head(decoder_output)
@@ -80,7 +83,7 @@ class SegmentationModel(torch.nn.Module):
                          
                          
 class Unet(SegmentationModel):
-"""
+    """
     Args:
         encoder_name: Name of the classification model that will be used as an encoder (a.k.a backbone)
             to extract features of different spatial resolution
@@ -103,7 +106,7 @@ class Unet(SegmentationModel):
             Available options are **"sigmoid"**, **"softmax"**, **"logsoftmax"**, **"tanh"**, **"identity"**,
                 **callable** and **None**.
             Default is **None**
-"""
+    """
     def __init__(
         self,
         encoder_name: str = "resnet34",
@@ -134,7 +137,7 @@ class Unet(SegmentationModel):
         )
 
         self.decoder = UnetDecoder(
-            encoder_channels=self.encoder.out_channels,
+            encoder_channels=self.encoder.out_channels*2,
             decoder_channels=decoder_channels,
             n_blocks=encoder_depth,
             use_batchnorm=decoder_use_batchnorm,
